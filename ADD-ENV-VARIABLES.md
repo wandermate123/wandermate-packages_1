@@ -51,11 +51,25 @@ Value: https://wandermate-packages-[your-random].vercel.app
 Environment: Production, Preview
 ```
 
-**How to Find Your Actual URL:**
-1. Go to Vercel Dashboard → Your Project
-2. Look at the top of the page - you'll see your deployment URL
-3. Or go to **Deployments** tab → Click on any deployment → Copy the URL
-4. Format: `https://wandermate-packages-xxxxx.vercel.app` or your custom domain
+**🔍 How to Find Your Actual URL (3 Easy Methods):**
+
+**Method 1 - Project Overview (Easiest):**
+1. Go to Vercel Dashboard → Click your `wandermate-packages` project
+2. Look at the **top of the page** - you'll see:
+   ```
+   Production: https://wandermate-packages-abc123def.vercel.app
+   ```
+3. **Copy this URL** - that's your `NEXT_PUBLIC_APP_URL`!
+
+**Method 2 - Deployments Tab:**
+1. Go to **Deployments** tab
+2. Click on the **latest deployment**
+3. Copy the URL shown at the top
+
+**Method 3 - Browser Address Bar:**
+- If you're viewing your deployed site, copy the URL from your browser's address bar
+
+**📝 See `FIND-YOUR-VERCEL-URL.md` for detailed step-by-step guide with screenshots!**
 
 **Quick Tip:** You can also leave this empty initially, deploy, then update it with the actual URL and redeploy.
 
