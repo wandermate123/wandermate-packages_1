@@ -79,6 +79,17 @@ export async function GET(request: NextRequest) {
     return paginatedResponse(packages, query.page, query.limit, total);
   } catch (error) {
     console.error('[API] Error in GET /api/packages:', error);
+    
+    // Provide more helpful error messages
+    if (error instanceof Error) {
+      if (error.message.includes('Can\'t reach database')) {
+        console.error('[API] Database connection failed. Check DATABASE_URL environment variable.');
+      }
+      if (error.message.includes('P1001')) {
+        console.error('[API] Database connection timeout. Check DATABASE_URL and network access.');
+      }
+    }
+    
     return handleApiError(error);
   }
 }
