@@ -1,0 +1,203 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  phone         String?
+  password      String?   // Optional for OAuth users
+  role          UserRole  @default(CUSTOMER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  bookings      Booking[]
+  reviews       Review[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+model Package {
+  id            String    @id @default(cuid())
+  name          String
+  destination   String
+  description   String
+  duration      String
+  price         Float
+  category      PackageCategory
+  featured      Boolean   @default(false)
+  
+  // Rich content
+  highlights    String[]  @default([])
+  images        String[]  @default([])
+  
+  // Optional fields
+  itinerary     Json?     // Array of ItineraryDay objects
+  inclusions    String[]  @default([])
+  exclusions    String[]  @default([])
+  terms         Json?     // { cancellation, refund, booking }
+  mapLocation   Json?     // { lat, lng, address }
+  
+  // Metadata
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  isActive      Boolean   @default(true)
+  
+  bookings      Booking[]
+  reviews       Review[]
+  
+  @@map("packages")
+}
+
+enum PackageCategory {
+  VARANASI_BUDGET
+  VARANASI_PREMIUM
+  SPIRITUAL_TRIANGLE
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  packageId       String
+  userId          String?
+  
+  // Booking details
+  numberOfPeople  Int
+  startDate       DateTime
+  endDate         DateTime
+  totalPrice      Float
+  
+  // Contact information
+  name            String
+  email           String
+  phone           String
+  specialRequests String?
+  
+  // Status tracking
+  status          BookingStatus @default(PENDING)
+  paymentStatus   PaymentStatus @default(PENDING)
+  
+  // Payment reference
+  paymentId       String?
+  
+  // Timestamps
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  package         Package       @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  payment         Payment?
+  reviews         Review[]
+  
+  @@index([packageId])
+  @@index([userId])
+  @@index([status])
+  @@index([email])
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  bookingId       String        @unique
+  amount          Float
+  currency        String        @default("INR")
+  
+  // Payment gateway details
+  gateway         String        // "razorpay", "stripe", etc.
+  gatewayPaymentId String?
+  gatewayOrderId  String?
+  
+  // Status
+  status          PaymentStatus @default(PENDING)
+  
+  // Payment method
+  paymentMethod   String?       // "card", "upi", "netbanking", etc.
+  
+  // Metadata
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  booking         Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  @@index([bookingId])
+  @@index([gatewayPaymentId])
+  @@index([status])
+  @@map("payments")
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  packageId   String
+  bookingId   String?
+  userId      String?
+  
+  // Review content
+  rating      Int      // 1-5
+  comment     String
+  name        String
+  verified    Boolean  @default(false)
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  package     Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  booking     Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@index([packageId])
+  @@index([rating])
+  @@map("reviews")
+}
+
+// FAQ model removed - FAQs are stored as JSON in Package model
+// Uncomment below if you want separate FAQ management:
+//
+// model FAQ {
+//   id          String   @id @default(cuid())
+//   packageId  String
+//   question    String
+//   answer      String
+//   order       Int      @default(0)
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+//   
+//   package     Package  @relation("PackageFAQs", fields: [packageId], references: [id], onDelete: Cascade)
+//   
+//   @@index([packageId])
+//   @@map("faqs")
+// }
+//
+// Then add to Package model:
+//   faqs        FAQ[]    @relation("PackageFAQs")
