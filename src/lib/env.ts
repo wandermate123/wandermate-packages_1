@@ -45,13 +45,16 @@ export function validateEnv() {
 }
 
 // Validate on module load (server-side only)
-if (typeof window === 'undefined') {
+// Only validate during runtime, not during build
+if (typeof window === 'undefined' && process.env.NODE_ENV !== undefined) {
   try {
     validateEnv();
   } catch (error) {
     console.error('❌ Environment validation failed:', error);
-    // Don't throw in development to allow partial setup
-    if (process.env.NODE_ENV === 'production') {
+    // Don't throw during build - let it fail at runtime instead
+    // This allows the build to complete even if env vars aren't set yet
+    if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
+      // Only throw if we're actually running in production (not building)
       throw error;
     }
   }

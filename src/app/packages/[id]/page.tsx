@@ -117,7 +117,7 @@ export default function PackageDetailPage() {
         }
         break;
       case 'native':
-        if (navigator.share) {
+        if ('share' in navigator && navigator.share) {
           try {
             await navigator.share({
               title: pkg?.name,
@@ -304,7 +304,7 @@ export default function PackageDetailPage() {
                 <h2 className="text-xl font-medium text-gray-900">Share This Package</h2>
                 <div className="relative">
                   {/* Share Icon Button */}
-                  {typeof window !== 'undefined' && navigator.share ? (
+                  {typeof window !== 'undefined' && 'share' in navigator ? (
                     <button
                       onClick={() => handleShare('native')}
                       className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50 transition-colors"
