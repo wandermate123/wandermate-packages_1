@@ -41,8 +41,13 @@ class ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-        console.error('[API Client] Error response:', errorData);
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+        const msg = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+        console.error('[API Client] Error response:', response.status, errorData);
+        throw new Error(
+          response.status === 503
+            ? 'Service temporarily unavailable. Please try again in a moment.'
+            : msg
+        );
       }
 
       const data = await response.json();
@@ -108,8 +113,9 @@ class ApiClient {
     return this.request(`/api/bookings?${queryParams.toString()}`);
   }
 
-  async getBooking(id: string): Promise<ApiResponse<any>> {
-    return this.request(`/api/bookings/${id}`);
+  async getBooking(id: string, email?: string): Promise<ApiResponse<any>> {
+    const query = email ? `?email=${encodeURIComponent(email)}` : '';
+    return this.request(`/api/bookings/${id}${query}`);
   }
 
   // Payment methods

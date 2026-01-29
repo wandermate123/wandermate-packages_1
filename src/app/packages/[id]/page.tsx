@@ -3,11 +3,18 @@
 import { useParams } from 'next/navigation';
 import { Package } from '../../../types/package';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import ImageSlideshow from '../../../components/ImageSlideshow';
-import BookingModal from '../../../components/BookingModal';
 import PackageCard from '../../../components/PackageCard';
+import PackageDetailSkeleton from '../../../components/PackageDetailSkeleton';
 import { apiClient } from '../../../lib/api-client';
+import { PLACEHOLDER_IMAGES } from '../../../lib/placeholders';
 import { useState, useEffect } from 'react';
+
+const BookingModal = dynamic(
+  () => import('../../../components/BookingModal').then((m) => m.default),
+  { ssr: false, loading: () => null }
+);
 
 // Map database category to frontend category
 function mapCategoryToFrontend(category: string): string {
@@ -36,15 +43,18 @@ export default function PackageDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [similarPackages, setSimilarPackages] = useState<Package[]>([]);
 
+  // Load main package first so content appears faster
   useEffect(() => {
+    if (!packageId) return;
+    let cancelled = false;
+
     async function fetchPackage() {
       try {
         setLoading(true);
         setError(null);
-        
         const response = await apiClient.getPackage(packageId);
-        
-        // Transform API data to match frontend Package type
+        if (cancelled) return;
+
         const transformedPackage: Package = {
           ...response.data,
           category: mapCategoryToFrontend(response.data.category),
@@ -58,15 +68,15 @@ export default function PackageDetailPage() {
           terms: response.data.terms || null,
           mapLocation: response.data.mapLocation || null,
         };
-
         setPkg(transformedPackage);
+        setLoading(false);
 
-        // Fetch similar packages
+        // Load similar packages after main content is shown (non-blocking)
         const similarResponse = await apiClient.getPackages({
           category: response.data.category,
           limit: 3,
         });
-
+        if (cancelled) return;
         const transformedSimilar = similarResponse.data
           .filter((p: any) => p.id !== packageId)
           .slice(0, 3)
@@ -76,19 +86,18 @@ export default function PackageDetailPage() {
             highlights: p.highlights || [],
             images: p.images || [],
           }));
-
         setSimilarPackages(transformedSimilar);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load package');
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load package');
+          setLoading(false);
+        }
         console.error('Error fetching package:', err);
-      } finally {
-        setLoading(false);
       }
     }
 
-    if (packageId) {
-      fetchPackage();
-    }
+    fetchPackage();
+    return () => { cancelled = true; };
   }, [packageId]);
 
   // Share functionality
@@ -133,14 +142,7 @@ export default function PackageDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mb-4"></div>
-          <p className="text-gray-500">Loading package...</p>
-        </div>
-      </div>
-    );
+    return <PackageDetailSkeleton />;
   }
 
   if (error || !pkg) {
@@ -485,8 +487,7 @@ export default function PackageDetailPage() {
                                       alt={`Day ${day.day} - ${day.title}`}
                                       className="w-full h-48 object-cover"
                                       onError={(e) => {
-                                        // Fallback to placeholder if image fails to load
-                                        (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=400&fit=crop&q=80`;
+                                        (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGES.itineraryDay;
                                       }}
                                     />
                                   </div>

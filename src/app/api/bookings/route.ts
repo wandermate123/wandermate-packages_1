@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '../../../lib/prisma';
-import { handleApiError, successResponse, paginatedResponse } from '../../../lib/api-utils';
+import { handleApiError, successResponse, paginatedResponse, ApiError } from '../../../lib/api-utils';
 import { bookingSchema } from '../../../lib/validations';
 
 // POST /api/bookings - Create a new booking
@@ -8,6 +8,17 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const validatedData = bookingSchema.parse(body);
+
+    // Reject past start dates (compare start of day UTC)
+    const startDate = new Date(validatedData.startDate);
+    const todayStart = new Date(Date.UTC(
+      new Date().getUTCFullYear(),
+      new Date().getUTCMonth(),
+      new Date().getUTCDate()
+    ));
+    if (startDate < todayStart) {
+      return handleApiError(new ApiError(400, 'Start date cannot be in the past'));
+    }
 
     // Verify package exists and is active
     const packageData = await prisma.package.findUnique({

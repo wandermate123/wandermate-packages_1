@@ -1,22 +1,31 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Package } from '../types/package';
+import { getPackageCardImage } from '../lib/placeholders';
 
 interface PackageCardProps {
   package: Package;
 }
 
 export default function PackageCard({ package: pkg }: PackageCardProps) {
+  const imageUrl = getPackageCardImage(pkg.images);
+
   return (
     <Link href={`/packages/${pkg.id}`} className="group cursor-pointer block">
       <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         {/* Image Container */}
         <div className="relative h-64 w-full overflow-hidden bg-gray-100">
+          <Image
+            src={imageUrl}
+            alt={pkg.name}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+            loading="lazy"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-            <span className="text-gray-400 text-sm">Image</span>
-          </div>
           
           {/* Badge */}
           {pkg.featured && (

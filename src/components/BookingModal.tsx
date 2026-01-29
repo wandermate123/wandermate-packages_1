@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Package } from '../types/package';
 import { apiClient } from '../lib/api-client';
+import DateRangePicker from './DateRangePicker';
 
 interface BookingModalProps {
   package: Package;
@@ -25,6 +26,7 @@ export default function BookingModal({ package: pkg, isOpen, onClose }: BookingM
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [bookingReference, setBookingReference] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -75,9 +77,11 @@ export default function BookingModal({ package: pkg, isOpen, onClose }: BookingM
         specialRequests: formData.specialRequests || undefined,
       });
 
+      const createdId = response?.data?.id;
+      setBookingReference(createdId || null);
       setSubmitSuccess(true);
-      
-      // Reset form
+
+      // Reset form (keep success view visible)
       setFormData({
         numberOfPeople: 1,
         startDate: '',
@@ -87,12 +91,6 @@ export default function BookingModal({ package: pkg, isOpen, onClose }: BookingM
         phone: '',
         specialRequests: '',
       });
-
-      // Close modal after 2 seconds
-      setTimeout(() => {
-        onClose();
-        setSubmitSuccess(false);
-      }, 2000);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Failed to submit booking. Please try again.');
       console.error('Booking submission error:', error);
@@ -199,36 +197,25 @@ export default function BookingModal({ package: pkg, isOpen, onClose }: BookingM
                     </div>
                   </div>
 
-                  {/* Travel Dates */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Start Date
-                      </label>
-                      <input
-                        type="date"
-                        name="startDate"
-                        value={formData.startDate}
-                        onChange={handleInputChange}
-                        min={new Date().toISOString().split('T')[0]}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        End Date
-                      </label>
-                      <input
-                        type="date"
-                        name="endDate"
-                        value={formData.endDate}
-                        onChange={handleInputChange}
-                        min={formData.startDate || new Date().toISOString().split('T')[0]}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
-                        required
-                      />
-                    </div>
+                  {/* Travel Dates - modern range calendar */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                      Travel Dates
+                    </label>
+                    <DateRangePicker
+                      startDate={formData.startDate}
+                      endDate={formData.endDate}
+                      onRangeChange={(start, end) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          startDate: start,
+                          endDate: end,
+                        }))
+                      }
+                      minDate={new Date()}
+                      minNights={0}
+                      placeholder="Select start and end date"
+                    />
                   </div>
 
                   {/* Contact Information */}
@@ -337,39 +324,73 @@ export default function BookingModal({ package: pkg, isOpen, onClose }: BookingM
                       </div>
                     )}
 
-                    {/* Success Message */}
+                    {/* Success state: reference + next steps */}
                     {submitSuccess && (
-                      <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <p className="text-sm text-green-700">
-                          ✅ Booking submitted successfully! We will contact you soon.
+                      <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl space-y-4">
+                        <p className="text-green-800 font-medium">
+                          ✅ Booking submitted successfully
                         </p>
+                        {bookingReference && (
+                          <div>
+                            <p className="text-xs text-gray-600 uppercase tracking-wide mb-1">Booking reference</p>
+                            <p className="text-lg font-mono font-medium text-gray-900 break-all">{bookingReference}</p>
+                            <p className="text-xs text-gray-500 mt-1">Save this reference to view or manage your booking.</p>
+                          </div>
+                        )}
+                        <div className="border-t border-green-200 pt-3">
+                          <p className="text-sm font-medium text-gray-800 mb-2">What happens next</p>
+                          <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
+                            <li>We will confirm availability and send you payment details.</li>
+                            <li>Complete payment to secure your booking.</li>
+                            <li>You will receive a final confirmation and itinerary by email.</li>
+                          </ul>
+                        </div>
                       </div>
                     )}
 
-                    <button
-                      type="submit"
-                      disabled={isSubmitting || submitSuccess}
-                      className="w-full bg-gray-900 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-800 transition-colors mb-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          <span>Submitting...</span>
-                        </>
-                      ) : submitSuccess ? (
-                        <span>✓ Booking Confirmed</span>
-                      ) : (
-                        <span>Confirm Booking</span>
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      disabled={isSubmitting}
-                      className="w-full border border-gray-300 text-gray-900 py-3 px-6 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Cancel
-                    </button>
+                    {!submitSuccess && (
+                      <>
+                        <button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="w-full bg-gray-900 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-800 transition-colors mb-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              <span>Submitting...</span>
+                            </>
+                          ) : (
+                            <span>Confirm Booking</span>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={onClose}
+                          disabled={isSubmitting}
+                          className="w-full border border-gray-300 text-gray-900 py-3 px-6 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    )}
+                    {submitSuccess && (
+                      <div className="space-y-2">
+                        <a
+                          href={bookingReference ? `/booking?ref=${bookingReference}` : '/booking'}
+                          className="block w-full text-center bg-gray-900 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-800 transition-colors"
+                        >
+                          View my booking
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => { setSubmitSuccess(false); setBookingReference(null); onClose(); }}
+                          className="w-full border border-gray-300 text-gray-900 py-3 px-6 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    )}
 
                     <div className="mt-6 pt-6 border-t border-gray-200">
                       <p className="text-xs text-gray-500 text-center">

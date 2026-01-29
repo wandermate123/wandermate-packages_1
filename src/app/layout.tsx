@@ -1,6 +1,11 @@
 import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
 import './globals.css';
-import WhatsAppButton from '../components/WhatsAppButton';
+
+const WhatsAppButton = dynamic(
+  () => import('../components/WhatsAppButton').then((m) => m.default),
+  { ssr: false }
+);
 
 export const metadata: Metadata = {
   title: 'Wandermate Packages - Curated Travel Experiences',

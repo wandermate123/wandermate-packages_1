@@ -20,9 +20,25 @@
 
 @keyframes progress {
   from {
-    width: 0%;
+    transform: scaleX(0);
+    transform-origin: left;
   }
   to {
-    width: 100%;
+    transform: scaleX(1);
+    transform-origin: left;
   }
+}
+
+/* Smoother scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Date range picker - layout tweaks */
+.rdp-travel .rdp-month {
+  margin: 0;
+}
+.rdp-travel .rdp-caption {
+  margin-bottom: 0.5rem;
+  padding: 0 2.5rem;
 }

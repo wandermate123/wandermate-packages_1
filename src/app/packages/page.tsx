@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import PackageCard from '../../components/PackageCard';
+import PackageCardSkeleton from '../../components/PackageCardSkeleton';
 import BannerSlideshow from '../../components/BannerSlideshow';
 import { apiClient } from '../../lib/api-client';
 import { Package } from '../../types/package';
@@ -162,9 +163,10 @@ export default function PackagesPage() {
 
         {/* Packages Grid */}
         {loading ? (
-          <div className="text-center py-20">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-            <p className="text-gray-500 mt-4">Loading packages...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <PackageCardSkeleton key={i} />
+            ))}
           </div>
         ) : error ? (
           <div className="text-center py-20">

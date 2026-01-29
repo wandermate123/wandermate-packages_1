@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getPackageGallery, PLACEHOLDER_IMAGES } from '../lib/placeholders';
 
 interface ImageSlideshowProps {
   images?: string[];
@@ -8,9 +9,15 @@ interface ImageSlideshowProps {
 
 export default function ImageSlideshow({ images = [] }: ImageSlideshowProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [failedUrls, setFailedUrls] = useState<Set<string>>(new Set());
 
-  // If no images provided, use placeholder
-  const displayImages = images.length > 0 ? images : ['placeholder'];
+  const displayImages = getPackageGallery(images);
+  const currentUrl = displayImages[currentIndex];
+  const fallbackUrl = PLACEHOLDER_IMAGES.packageHero;
+
+  const handleImageError = () => {
+    if (currentUrl) setFailedUrls((prev) => new Set(prev).add(currentUrl));
+  };
 
   const goToPrevious = () => {
     setCurrentIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
@@ -24,24 +31,21 @@ export default function ImageSlideshow({ images = [] }: ImageSlideshowProps) {
     setCurrentIndex(index);
   };
 
+  const imageToShow = failedUrls.has(currentUrl) ? fallbackUrl : currentUrl;
+
   return (
     <div className="relative w-full rounded-2xl overflow-hidden bg-gray-100">
       {/* Main Image */}
       <div className="relative h-96 md:h-[500px] w-full">
-        {displayImages[0] === 'placeholder' ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-            <div className="text-center">
-              <svg className="w-16 h-16 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <p className="text-gray-500 text-sm">Package Image</p>
-            </div>
-          </div>
-        ) : (
-          <div className="absolute inset-0 bg-gray-200">
-            <span className="text-gray-400 text-sm">Image {currentIndex + 1}</span>
-          </div>
-        )}
+        <img
+          src={imageToShow}
+          alt={`Package view ${currentIndex + 1}`}
+          className="absolute inset-0 w-full h-full object-cover"
+          loading={currentIndex === 0 ? 'eager' : 'lazy'}
+          decoding="async"
+          fetchPriority={currentIndex === 0 ? 'high' : 'auto'}
+          onError={handleImageError}
+        />
 
         {/* Navigation Arrows */}
         {displayImages.length > 1 && (
@@ -78,7 +82,7 @@ export default function ImageSlideshow({ images = [] }: ImageSlideshowProps) {
       {/* Thumbnail Navigation */}
       {displayImages.length > 1 && (
         <div className="flex gap-2 p-4 bg-gray-50 overflow-x-auto">
-          {displayImages.map((_, index) => (
+          {displayImages.map((url, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
@@ -88,9 +92,13 @@ export default function ImageSlideshow({ images = [] }: ImageSlideshowProps) {
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <span className="text-xs text-gray-500">{index + 1}</span>
-              </div>
+              <img
+                src={failedUrls.has(url) ? fallbackUrl : url}
+                alt={`Thumbnail ${index + 1}`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
             </button>
           ))}
         </div>

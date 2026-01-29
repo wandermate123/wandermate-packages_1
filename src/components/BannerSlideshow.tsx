@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { BANNER_IMAGES } from '../lib/placeholders';
 
 interface BannerSlide {
   id: string;
@@ -22,6 +23,7 @@ const defaultSlides: BannerSlide[] = [
     title: 'Discover Authentic Varanasi',
     subtitle: 'Experience the Spiritual Capital',
     description: 'Raw. Real. Unfiltered. Journey through the heart of ancient India.',
+    image: BANNER_IMAGES[0],
     ctaText: 'Explore Packages',
     ctaLink: '/packages?category=varanasi-budget',
   },
@@ -30,6 +32,7 @@ const defaultSlides: BannerSlide[] = [
     title: 'Premium Luxury Travel',
     subtitle: 'WanderMate Elite Experience',
     description: 'Indulge in world-class hospitality with exclusive access to spiritual ceremonies.',
+    image: BANNER_IMAGES[1],
     ctaText: 'View Premium Packages',
     ctaLink: '/packages?category=varanasi-premium',
   },
@@ -38,6 +41,7 @@ const defaultSlides: BannerSlide[] = [
     title: 'Spiritual Triangle Tour',
     subtitle: 'Varanasi • Ayodhya • Prayagraj',
     description: 'Complete your spiritual journey through India\'s most sacred cities.',
+    image: BANNER_IMAGES[2],
     ctaText: 'Discover More',
     ctaLink: '/packages?category=spiritual-triangle',
   },
@@ -87,6 +91,17 @@ export default function BannerSlideshow({ slides = defaultSlides }: BannerSlides
               index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
             }`}
           >
+            {/* Background Image */}
+            {slide.image && (
+              <img
+                src={slide.image}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+                loading={index === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                aria-hidden
+              />
+            )}
             {/* Background Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 z-10" />
             
@@ -167,7 +182,7 @@ export default function BannerSlideshow({ slides = defaultSlides }: BannerSlides
             key={currentSlide}
             className="h-full bg-white"
             style={{
-              width: '0%',
+              width: '100%',
               animation: 'progress 5s linear forwards',
             }}
           />
