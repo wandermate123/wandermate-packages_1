@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { handleApiError, successResponse } from '@/lib/api-utils';
+import { prisma } from '../../../../lib/prisma';
+import { handleApiError, successResponse } from '../../../../lib/api-utils';
 
 // GET /api/bookings/[id] - Get a single booking
 export async function GET(

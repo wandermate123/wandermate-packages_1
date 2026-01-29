@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { handleApiError, successResponse } from '@/lib/api-utils';
-import { paymentSchema } from '@/lib/validations';
+import { prisma } from '../../../lib/prisma';
+import { handleApiError, successResponse } from '../../../lib/api-utils';
+import { paymentSchema } from '../../../lib/validations';
 
 // POST /api/payments - Create payment record
 export async function POST(request: NextRequest) {

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { handleApiError, successResponse, paginatedResponse } from '@/lib/api-utils';
-import { bookingSchema } from '@/lib/validations';
+import { prisma } from '../../../lib/prisma';
+import { handleApiError, successResponse, paginatedResponse } from '../../../lib/api-utils';
+import { bookingSchema } from '../../../lib/validations';
 
 // POST /api/bookings - Create a new booking
 export async function POST(request: NextRequest) {

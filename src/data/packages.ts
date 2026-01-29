@@ -1,4 +1,4 @@
-import { Package } from '@/types/package';
+import { Package } from '../types/package';
 
 export const packages: Package[] = [
   // Varanasi Budget Packages

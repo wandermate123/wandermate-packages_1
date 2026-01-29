@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { handleApiError, successResponse, paginatedResponse } from '@/lib/api-utils';
-import { packageSchema, packageQuerySchema } from '@/lib/validations';
+import { prisma } from '../../../lib/prisma';
+import { handleApiError, successResponse, paginatedResponse } from '../../../lib/api-utils';
+import { packageSchema, packageQuerySchema } from '../../../lib/validations';
 
 // GET /api/packages - Get all packages with filtering and pagination
 export async function GET(request: NextRequest) {
