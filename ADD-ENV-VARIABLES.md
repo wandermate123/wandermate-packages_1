@@ -76,7 +76,74 @@ Environment: Production, Preview
 ### 3. JWT Secret
 ```
 Name: JWT_SECRET
-Value: [generate with: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"]
+Value: [generate wit19:45:43.560 Running build in Washington, D.C., USA (East) – iad1
+19:45:43.561 Build machine configuration: 2 cores, 8 GB
+19:45:43.574 Cloning github.com/wandermate123/wandermate-packages_1 (Branch: main, Commit: 1992381)
+19:45:43.575 Skipping build cache, deployment was triggered without cache.
+19:45:43.984 Cloning completed: 409.000ms
+19:45:44.435 Running "vercel build"
+19:45:45.523 Vercel CLI 50.5.2
+19:45:45.873 Running "install" command: `npm install`...
+19:45:57.051 
+19:45:57.052 added 46 packages, and audited 47 packages in 11s
+19:45:57.052 
+19:45:57.053 5 packages are looking for funding
+19:45:57.053   run `npm fund` for details
+19:45:57.085 
+19:45:57.086 1 high severity vulnerability
+19:45:57.086 
+19:45:57.087 To address all issues (including breaking changes), run:
+19:45:57.087   npm audit fix --force
+19:45:57.087 
+19:45:57.088 Run `npm audit` for details.
+19:45:57.132 Detected Next.js version: 14.2.35
+19:45:57.134 Running "prisma generate && next build"
+19:45:57.592 Prisma schema loaded from prisma/schema.prisma
+19:45:58.006 
+19:45:58.007 ✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 121ms
+19:45:58.008 
+19:45:58.008 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+19:45:58.008 
+19:45:58.008 Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+19:45:58.008 
+19:45:58.906 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+19:45:58.908 This information is used to shape Next.js' roadmap and prioritize features.
+19:45:58.908 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+19:45:58.908 https://nextjs.org/telemetry
+19:45:58.908 
+19:45:58.958   ▲ Next.js 14.2.35
+19:45:58.959 
+19:45:58.982    Creating an optimized production build ...
+19:46:02.543 Failed to compile.
+19:46:02.543 
+19:46:02.543 ./src/app/packages/[id]/page.tsx
+19:46:02.544 Module not found: Can't resolve '@/components/ImageSlideshow'
+19:46:02.544 
+19:46:02.544 https://nextjs.org/docs/messages/module-not-found
+19:46:02.544 
+19:46:02.544 ./src/app/packages/[id]/page.tsx
+19:46:02.544 Module not found: Can't resolve '@/components/BookingModal'
+19:46:02.544 
+19:46:02.544 https://nextjs.org/docs/messages/module-not-found
+19:46:02.544 
+19:46:02.544 ./src/app/packages/[id]/page.tsx
+19:46:02.544 Module not found: Can't resolve '@/components/PackageCard'
+19:46:02.546 
+19:46:02.546 https://nextjs.org/docs/messages/module-not-found
+19:46:02.546 
+19:46:02.546 ./src/app/packages/[id]/page.tsx
+19:46:02.546 Module not found: Can't resolve '@/lib/api-client'
+19:46:02.546 
+19:46:02.547 https://nextjs.org/docs/messages/module-not-found
+19:46:02.547 
+19:46:02.547 ./src/app/packages/page.tsx
+19:46:02.547 Module not found: Can't resolve '@/components/PackageCard'
+19:46:02.547 
+19:46:02.547 https://nextjs.org/docs/messages/module-not-found
+19:46:02.547 
+19:46:02.557 
+19:46:02.559 > Build failed because of webpack errors
+19:46:02.577 Error: Command "prisma generate && next build" exited with 1h: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"]
 Environment: Production, Preview
 ```
 
@@ -194,6 +261,7 @@ npx vercel env pull .env.production
 | **NEXT_PUBLIC_APP_URL** wrong | Use the exact Production URL from Vercel (e.g. `https://wandermate-packages-xxx.vercel.app`). No trailing slash. |
 | **Vars only in Development** | Add each variable to **Production** (and **Preview** if you use it). Redeploy after changing env. |
 | **500 after deploy** | Build passed but runtime fails. Check **Functions** / **Runtime Logs** for the real error (often DATABASE_URL or JWT_SECRET). |
+| **"An unexpected error" or packages don't load** | **Add DATABASE_URL** in Vercel: Settings → Environment Variables → add `DATABASE_URL` with your Supabase Postgres URL (Production + Preview) → Save → Redeploy. Then check `https://your-app.vercel.app/api/health` — if `db.status` is `"error"`, the URL is wrong. |
 
 **3. Redeploy after any env change**
 - Settings → Environment Variables → save

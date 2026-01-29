@@ -37,12 +37,21 @@ export function handleApiError(error: unknown) {
   }
 
   if (error instanceof Error) {
+    const msg = error.message || '';
+    const isDbError =
+      (error as { code?: string }).code?.startsWith?.('P') ||
+      /can't reach|connection|database|ECONNREFUSED|ETIMEDOUT|P1001|P1002|P1017|Environment variable not found|DATABASE_URL|invalid connection|connection refused|getaddrinfo|ENOTFOUND/i.test(msg);
+    const status = isDbError ? 503 : 500;
+    const message =
+      process.env.NODE_ENV === 'development'
+        ? error.message
+        : isDbError
+          ? 'Database connection failed. Please try again later.'
+          : 'An unexpected error occurred';
+    console.error('[API] Server error:', error.message, error);
     return NextResponse.json(
-      {
-        error: 'INTERNAL_ERROR',
-        message: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred',
-      },
-      { status: 500 }
+      { error: isDbError ? 'SERVICE_UNAVAILABLE' : 'INTERNAL_ERROR', message },
+      { status }
     );
   }
 

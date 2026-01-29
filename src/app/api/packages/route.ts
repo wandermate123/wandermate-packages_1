@@ -6,6 +6,14 @@ import { packageSchema, packageQuerySchema } from '@/lib/validations';
 // GET /api/packages - Get all packages with filtering and pagination
 export async function GET(request: NextRequest) {
   try {
+    if (!process.env.DATABASE_URL) {
+      console.error('[API] DATABASE_URL is not set. Add it in Vercel → Settings → Environment Variables.');
+      return Response.json(
+        { error: 'SERVICE_UNAVAILABLE', message: 'Database not configured. Please add DATABASE_URL in deployment settings.' },
+        { status: 503 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     
     // Parse query with safe defaults - convert null to undefined
