@@ -159,6 +159,7 @@ Environment: Production, Preview
 ## Optional Environment Variables
 
 ### Payment Gateway (Razorpay)
+Required for "Pay now" on the View Booking page. Get keys from [Razorpay Dashboard](https://dashboard.razorpay.com/app/keys) (use Test mode for development).
 ```
 Name: RAZORPAY_KEY_ID
 Value: [your razorpay key]
@@ -170,15 +171,33 @@ Environment: Production, Preview
 ```
 
 ### Email Service (Resend)
+Used to send booking confirmation emails after payment. Get API key from [Resend](https://resend.com). Verify your domain for production.
 ```
 Name: RESEND_API_KEY
 Value: [your resend API key]
 Environment: Production, Preview
 
 Name: EMAIL_FROM
-Value: noreply@wandermate.com
+Value: Wandermate <noreply@yourdomain.com>
 Environment: Production, Preview
 ```
+
+### WhatsApp Notifications (Twilio)
+Used to send booking confirmation WhatsApp messages after payment. Get credentials from [Twilio Console](https://console.twilio.com). Use [WhatsApp Sandbox](https://www.twilio.com/docs/whatsapp/sandbox) for development.
+```
+Name: TWILIO_ACCOUNT_SID
+Value: [your twilio account sid]
+Environment: Production, Preview
+
+Name: TWILIO_AUTH_TOKEN
+Value: [your twilio auth token]
+Environment: Production, Preview
+
+Name: TWILIO_WHATSAPP_FROM
+Value: whatsapp:+14155238886
+Environment: Production, Preview
+```
+*(Sandbox "From" number is shown in Twilio WhatsApp Sandbox setup. For production, use your Twilio WhatsApp-enabled number.)*
 
 ### Admin Account
 ```

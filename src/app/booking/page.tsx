@@ -1,9 +1,37 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { apiClient } from '../../lib/api-client';
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: {
+      key: string;
+      order_id: string;
+      amount: number;
+      currency: string;
+      name?: string;
+      description?: string;
+      handler: (res: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => void;
+      modal?: { ondismiss?: () => void };
+    }) => { open: () => void };
+  }
+}
+
+function loadRazorpayScript(): Promise<boolean> {
+  if (typeof window === 'undefined') return Promise.resolve(false);
+  if (window.Razorpay) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => resolve(!!window.Razorpay);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 
 function BookingLookupContent() {
   const searchParams = useSearchParams();
@@ -14,10 +42,80 @@ function BookingLookupContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [booking, setBooking] = useState<any>(null);
+  const [payLoading, setPayLoading] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
 
   useEffect(() => {
     if (refFromUrl) setBookingId(refFromUrl);
   }, [refFromUrl]);
+
+  const refreshBooking = useCallback(async () => {
+    const id = bookingId.trim();
+    const emailVal = email.trim();
+    if (!id || !emailVal) return;
+    try {
+      const response = await apiClient.getBooking(id, emailVal);
+      setBooking(response?.data ?? null);
+    } catch {
+      // keep current booking on refresh error
+    }
+  }, [bookingId, email]);
+
+  const handlePayNow = useCallback(async () => {
+    if (!booking || booking.paymentStatus === 'PAID') return;
+    const emailVal = email.trim();
+    if (!emailVal) {
+      setPayError('Email is required to pay.');
+      return;
+    }
+    setPayError(null);
+    setPayLoading(true);
+    try {
+      const orderRes = await apiClient.createPaymentOrder(booking.id, emailVal);
+      const data = orderRes?.data;
+      if (!data?.orderId || !data?.key) {
+        setPayError('Could not start payment. Please try again.');
+        setPayLoading(false);
+        return;
+      }
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded || !window.Razorpay) {
+        setPayError('Payment gateway could not be loaded. Please try again.');
+        setPayLoading(false);
+        return;
+      }
+      const rzp = new window.Razorpay({
+        key: data.key,
+        order_id: data.orderId,
+        amount: data.amount,
+        currency: data.currency || 'INR',
+        name: 'Wandermate',
+        description: booking.package?.name ? `Booking: ${booking.package.name}` : 'Trip booking',
+        handler: async (res) => {
+          try {
+            await apiClient.verifyPayment({
+              razorpay_order_id: res.razorpay_order_id,
+              razorpay_payment_id: res.razorpay_payment_id,
+              razorpay_signature: res.razorpay_signature,
+              paymentId: data.paymentId,
+            });
+            await refreshBooking();
+          } catch (err) {
+            setPayError(err instanceof Error ? err.message : 'Verification failed. Please contact support.');
+          } finally {
+            setPayLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: () => setPayLoading(false),
+        },
+      });
+      rzp.open();
+    } catch (err) {
+      setPayError(err instanceof Error ? err.message : 'Could not start payment. Please try again.');
+      setPayLoading(false);
+    }
+  }, [booking, email, refreshBooking]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,6 +251,31 @@ function BookingLookupContent() {
                   <dd className="font-medium text-gray-900 capitalize">{booking.paymentStatus?.toLowerCase()}</dd>
                 </div>
               </dl>
+              {booking.paymentStatus !== 'PAID' && (
+                <div className="pt-4 border-t border-gray-200">
+                  {payError && (
+                    <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                      {payError}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handlePayNow}
+                    disabled={payLoading}
+                    className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {payLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                        Opening payment...
+                      </>
+                    ) : (
+                      <>Pay ₹{Number(booking.totalPrice).toLocaleString()} now</>
+                    )}
+                  </button>
+                  <p className="text-xs text-gray-500 mt-2 text-center">Secure payment via Razorpay</p>
+                </div>
+              )}
               {booking.specialRequests && (
                 <div>
                   <dt className="text-gray-500 text-sm mb-1">Special requests</dt>

@@ -131,6 +131,29 @@ class ApiClient {
       body: JSON.stringify(paymentData),
     });
   }
+
+  /** Create Razorpay order for a booking. Returns { orderId, amount, currency, key, paymentId }. */
+  async createPaymentOrder(bookingId: string, email?: string): Promise<
+    ApiResponse<{ orderId: string; amount: number; currency: string; key: string; paymentId: string }>
+  > {
+    return this.request('/api/payments/create-order', {
+      method: 'POST',
+      body: JSON.stringify({ bookingId, email: email || undefined }),
+    });
+  }
+
+  /** Verify Razorpay payment and confirm booking. */
+  async verifyPayment(body: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    paymentId?: string;
+  }): Promise<ApiResponse<{ verified: boolean; bookingId: string; message: string }>> {
+    return this.request('/api/payments/verify', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
