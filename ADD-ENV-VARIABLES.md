@@ -178,6 +178,27 @@ npx vercel env pull .env.production
 
 ## Troubleshooting
 
+### Deployment showing error after adding env vars?
+
+**1. See the actual error**
+- Vercel Dashboard → your project → **Deployments** → click the **failed** deployment
+- Open **Building** or **Functions** logs and copy the error message
+
+**2. Common causes and fixes**
+
+| Problem | Fix |
+|--------|-----|
+| **Build fails** (e.g. "Missing env", "undefined") | Env validation is now skipped on Vercel during build. Commit the latest code (updated `env.ts` and `vercel.json`) and redeploy. |
+| **Wrong Prisma client** | Removed `PRISMA_GENERATE_DATAPROXY` from `vercel.json` so the normal Postgres client is used. Redeploy. |
+| **DATABASE_URL** has `#` or `&` | In Vercel, paste the value with no extra spaces; special chars are OK. If it still fails, wrap in quotes in Vercel (some setups need it). |
+| **NEXT_PUBLIC_APP_URL** wrong | Use the exact Production URL from Vercel (e.g. `https://wandermate-packages-xxx.vercel.app`). No trailing slash. |
+| **Vars only in Development** | Add each variable to **Production** (and **Preview** if you use it). Redeploy after changing env. |
+| **500 after deploy** | Build passed but runtime fails. Check **Functions** / **Runtime Logs** for the real error (often DATABASE_URL or JWT_SECRET). |
+
+**3. Redeploy after any env change**
+- Settings → Environment Variables → save
+- Deployments → **⋯** on latest → **Redeploy**
+
 ### Variables Not Working?
 
 1. **Check Spelling**: Variable names are case-sensitive
