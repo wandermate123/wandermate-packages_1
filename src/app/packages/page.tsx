@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import PackageCard from '@/components/PackageCard';
-import BannerSlideshow from '@/components/BannerSlideshow';
-import { apiClient } from '@/lib/api-client';
-import { Package } from '@/types/package';
+import PackageCard from '../../components/PackageCard';
+import BannerSlideshow from '../../components/BannerSlideshow';
+import { apiClient } from '../../lib/api-client';
+import { Package } from '../../types/package';
 
 // Map database category to frontend category
 function mapCategoryToFrontend(category: string): string {

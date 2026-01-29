@@ -1,12 +1,12 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { Package } from '@/types/package';
+import { Package } from '../../../types/package';
 import Link from 'next/link';
-import ImageSlideshow from '@/components/ImageSlideshow';
-import BookingModal from '@/components/BookingModal';
-import PackageCard from '@/components/PackageCard';
-import { apiClient } from '@/lib/api-client';
+import ImageSlideshow from '../../../components/ImageSlideshow';
+import BookingModal from '../../../components/BookingModal';
+import PackageCard from '../../../components/PackageCard';
+import { apiClient } from '../../../lib/api-client';
 import { useState, useEffect } from 'react';
 
 // Map database category to frontend category

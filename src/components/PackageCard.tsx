@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Package } from '@/types/package';
+import { Package } from '../types/package';
 
 interface PackageCardProps {
   package: Package;

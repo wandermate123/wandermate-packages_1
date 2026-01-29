@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Package } from '@/types/package';
-import { apiClient } from '@/lib/api-client';
+import { Package } from '../types/package';
+import { apiClient } from '../lib/api-client';
 
 interface BookingModalProps {
   package: Package;
